@@ -1,4 +1,4 @@
-export const PRUNA_API_KEY = 'pru_IwuwIn1Gce5Axm70zp4wfGbx8sssd2Vs';
+export const PRUNA_API_KEY = import.meta.env.VITE_PRUNA_API_KEY;
 const API_URL = 'https://api.pruna.ai/v1/predictions';
 
 export async function generateMedia(prompt, type = 'image') {
