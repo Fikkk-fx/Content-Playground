@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Send, Image as ImageIcon, Video, Loader2 } from 'lucide-react';
 import './PromptInput.css';
 
-export default function PromptInput({ onGenerate, isGenerating, type, setType }) {
+export default function PromptInput({ onGenerate, isGenerating, type }) {
   const [prompt, setPrompt] = useState('');
+  const [upsample, setUpsample] = useState(true);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -13,53 +13,52 @@ export default function PromptInput({ onGenerate, isGenerating, type, setType })
   };
 
   return (
-    <div className="prompt-container glass-panel animate-slide-up">
-      <div className="type-toggle">
-        <button 
-          className={`toggle-btn ${type === 'image' ? 'active' : ''}`}
-          onClick={() => setType('image')}
-          disabled={isGenerating}
-        >
-          <ImageIcon size={18} /> Image
-        </button>
-        <button 
-          className={`toggle-btn ${type === 'video' ? 'active' : ''}`}
-          onClick={() => setType('video')}
-          disabled={isGenerating}
-        >
-          <Video size={18} /> Video
-        </button>
-      </div>
-
-      <form onSubmit={handleSubmit} className="input-form">
+    <div className="prompt-editor-card pruna-surface-card">
+      <form onSubmit={handleSubmit} className="editor-form">
+        
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder={`Describe the ${type} you want to generate...`}
-          className="prompt-textarea"
-          rows={3}
+          className="editor-textarea"
           disabled={isGenerating}
         />
-        <div className="form-footer">
-          <p className="model-info">
-            Using model: <span className="highlight">p-{type}</span>
-          </p>
+        
+        <div className="editor-settings pruna-surface-subtle">
+          <div className="setting-group">
+            <label className="setting-label">Thinking</label>
+            <div className="select-wrapper">
+              <select className="editor-select" defaultValue="medium" disabled={isGenerating}>
+                <option value="very_low">Very low</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+          </div>
+          
+          <label className="checkbox-label">
+            <input 
+              type="checkbox" 
+              className="editor-checkbox" 
+              checked={upsample}
+              onChange={(e) => setUpsample(e.target.checked)}
+              disabled={isGenerating}
+            />
+            Prompt upsampling
+          </label>
+        </div>
+
+        <div className="editor-footer pruna-surface-subtle">
+          <button type="button" className="pruna-btn-secondary footer-btn" disabled={isGenerating}>
+            Advanced
+          </button>
           <button 
             type="submit" 
-            className="glass-button primary generate-btn"
+            className="pruna-btn-primary footer-btn"
             disabled={!prompt.trim() || isGenerating}
           >
-            {isGenerating ? (
-              <>
-                <Loader2 size={18} className="spinner" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Send size={18} />
-                Generate {type === 'image' ? 'Image' : 'Video'}
-              </>
-            )}
+            {isGenerating ? 'Generating...' : 'Generate'}
           </button>
         </div>
       </form>

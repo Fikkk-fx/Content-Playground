@@ -1,52 +1,54 @@
 import React from 'react';
-import { Download, ExternalLink } from 'lucide-react';
+import { Settings2 } from 'lucide-react';
 import './MediaDisplay.css';
 
 export default function MediaDisplay({ mediaUrl, type, isGenerating }) {
-  if (!mediaUrl && !isGenerating) {
-    return (
-      <div className="media-placeholder glass-panel animate-fade-in">
-        <p>Your generated {type} will appear here.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="media-container glass-panel animate-slide-up">
-      {isGenerating ? (
-        <div className="generating-skeleton">
-          <div className="skeleton-pulse"></div>
-          <p className="skeleton-text">AI is creating your {type}...</p>
+    <div className="output-card pruna-surface-subtle">
+      <div className="output-header">
+        <div className="output-header-left">
+          <span className="output-title">Output</span>
+          <button className="settings-btn" title="Settings">
+            <Settings2 size={14} />
+          </button>
         </div>
-      ) : (
-        <div className="media-content">
-          {type === 'image' ? (
-            <img src={mediaUrl} alt="Generated" className="generated-media" />
-          ) : (
-            <video src={mediaUrl} controls autoPlay loop className="generated-media" />
+        <span className="status-badge">
+          {isGenerating ? 'Generating...' : (mediaUrl ? 'Completed' : 'Awaiting prompt...')}
+        </span>
+      </div>
+      
+      <div className="output-body">
+        <div className="output-canvas">
+          {!mediaUrl && !isGenerating && (
+            <div className="placeholder-content">
+              <div className="placeholder-box animate-pulse"></div>
+            </div>
           )}
           
-          <div className="media-actions">
-            <a 
-              href={mediaUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="glass-button"
-            >
-              <ExternalLink size={16} /> Open
-            </a>
-            <a 
-              href={mediaUrl} 
-              download={`pruna-${type}-${Date.now()}`} 
-              target="_blank"
-              rel="noopener noreferrer"
-              className="glass-button primary"
-            >
-              <Download size={16} /> Download
-            </a>
-          </div>
+          {isGenerating && (
+            <div className="loading-state">
+              <div className="loading-spinner"></div>
+              <span>Processing Request</span>
+            </div>
+          )}
+          
+          {mediaUrl && !isGenerating && (
+            <div className="media-wrapper">
+              {type === 'image' ? (
+                <img src={mediaUrl} alt="Generated output" className="result-media" />
+              ) : (
+                <video src={mediaUrl} controls autoPlay loop className="result-media" />
+              )}
+              
+              <div className="media-overlay-actions">
+                <a href={mediaUrl} target="_blank" rel="noopener noreferrer" className="pruna-btn-secondary text-xs">
+                  Open Original
+                </a>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
