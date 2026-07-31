@@ -52,10 +52,10 @@ function App() {
                 className={`sidebar-nav-link w-full text-left border-0 ${type === 'image' ? 'active' : ''}`}
                 onClick={() => handleTypeChange('image')}
               >
-                P-Image
+                P-Image-Ideogram
               </button>
             </li>
-            <li><span className="sidebar-nav-link text-zinc-500 cursor-not-allowed">P-Image-Ideogram</span></li>
+            <li><span className="sidebar-nav-link text-zinc-500 cursor-not-allowed">P-Image</span></li>
             <li><span className="sidebar-nav-link text-zinc-500 cursor-not-allowed">P-Image-Edit</span></li>
             <li><span className="sidebar-nav-link text-zinc-500 cursor-not-allowed">P-Image-Upscale</span></li>
             <li>
@@ -79,7 +79,7 @@ function App() {
               text-to-{type}
             </div>
             <div>
-              <h1 className="model-title">P-{type === 'image' ? 'Image' : 'Video'}</h1>
+              <h1 className="model-title">P-{type === 'image' ? 'Image-Ideogram' : 'Video'}</h1>
               <p className="model-desc">
                 Pruna performance model for ultra-fast {type} generation with optimal speed, price, and quality.
               </p>

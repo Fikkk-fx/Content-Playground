@@ -2,24 +2,27 @@ export const PRUNA_API_KEY = import.meta.env.VITE_PRUNA_API_KEY;
 const API_URL = 'https://api.pruna.ai/v1/predictions';
 
 export async function generateMedia(prompt, type = 'image') {
-  const model = type === 'video' ? 'p-video' : 'p-image';
+  if (!PRUNA_API_KEY) {
+    throw new Error('API Key is missing. Please check your .env file.');
+  }
+
+  // Using p-image-ideogram for images, p-video for videos
+  const modelId = type === 'image' ? 'p-image-ideogram' : 'p-video';
   
+  const payload = {
+    model: modelId,
+    prompt: prompt
+  };
+
   try {
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'apikey': PRUNA_API_KEY,
-        'Model': model,
-        'Try-Sync': 'true'
+        'Try-Sync': 'true' // Request synchronous generation for faster response
       },
-      body: JSON.stringify({
-        input: {
-          prompt: prompt,
-          // Add default parameters if needed
-          ...(type === 'image' && { aspect_ratio: '16:9' })
-        }
-      })
+      body: JSON.stringify(payload)
     });
 
     if (!response.ok) {
@@ -29,19 +32,63 @@ export async function generateMedia(prompt, type = 'image') {
 
     const data = await response.json();
     
-    // Pruna API usually returns output array or object
-    // Assuming data.output contains the URL based on Replicate-like responses
-    if (data.output && Array.isArray(data.output) && data.output.length > 0) {
-      return data.output[0];
-    } else if (data.output && typeof data.output === 'string') {
-      return data.output;
+    // In synchronous mode, output should be in 'data' or similar field. 
+    // Handling standard Pruna response structures.
+    if (data.status === 'succeeded' || data.data) {
+      const output = data.output || data.data;
+      if (Array.isArray(output) && output.length > 0) {
+        return output[0].url || output[0];
+      }
+      if (typeof output === 'string') {
+        return output;
+      }
+      if (output && output.url) {
+        return output.url;
+      }
     }
     
-    console.log('API Response:', data);
-    throw new Error('Unexpected response format from Pruna API');
+    // If it's a polling job (async)
+    if (data.id && data.status === 'starting' || data.status === 'processing') {
+      return await pollJobStatus(data.id);
+    }
     
+    throw new Error('Unexpected response format from Pruna API.');
+
   } catch (error) {
     console.error('Error generating media:', error);
     throw error;
   }
+}
+
+async function pollJobStatus(jobId, maxRetries = 30) {
+  const pollUrl = `${API_URL}/${jobId}`;
+  
+  for (let i = 0; i < maxRetries; i++) {
+    await new Promise(resolve => setTimeout(resolve, 2000)); // wait 2s
+    
+    const response = await fetch(pollUrl, {
+      method: 'GET',
+      headers: {
+        'apikey': PRUNA_API_KEY
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Polling failed: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    if (data.status === 'succeeded') {
+      const output = data.output || data.data;
+      if (Array.isArray(output) && output.length > 0) {
+        return output[0].url || output[0];
+      }
+      return typeof output === 'string' ? output : (output?.url || null);
+    } else if (data.status === 'failed') {
+      throw new Error('Generation failed on the server.');
+    }
+    // else keep polling
+  }
+  
+  throw new Error('Polling timed out.');
 }
